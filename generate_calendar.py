@@ -10,6 +10,8 @@ NOTION_TOKEN = os.environ["NOTION_TOKEN"]
 DATABASE_ID = os.environ["NOTION_DATABASE_ID"]
 DATASOURCE_ID = os.environ["NOTION_DATASOURCE_ID"]
 
+CALENDARS_FOLDER = "calendars"
+
 HEADERS = {
     "Authorization": f"Bearer {NOTION_TOKEN}",
     "Notion-Version": "2025-09-03",
@@ -81,5 +83,5 @@ def generate_ics(events):
 if __name__ == "__main__":
     events = fetch_events()
     ics_text = generate_ics(events)
-    with open("calendar.ics", "w", encoding="utf-8") as f:
+    with open(f"{CALENDARS_FOLDER}/dnb-ams-calendar.ics", "w", encoding="utf-8") as f:
         f.write(ics_text)
