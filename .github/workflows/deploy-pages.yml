@@ -20,14 +20,19 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+    
+      - name: Debug workflow_run context
+        run: |
+         echo "Triggered by run ID: ${{ github.event.workflow_run.id }}"
+         echo "Conclusion: ${{ github.event.workflow_run.conclusion }}"
 
       - name: Download calendars artifact
         uses: actions/download-artifact@v4
 
         with:
-          name: calendars
+        #   name: calendars
           run-id: ${{ github.event.workflow_run.id }}
-          path: calendars/
+        #   path: calendars/
 
       - name: Prepare site
         run: |
