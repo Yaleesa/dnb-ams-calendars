@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 import requests
 import os
+import argparse
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -80,8 +82,54 @@ def generate_ics(events):
     return "\r\n".join(lines)
 
 
-if __name__ == "__main__":
+def write_calendar(path: Path, ics_text: str):
+    if not ics_text:
+        raise ValueError(f"{path.name}: empty calendar output location")
+
+    if "BEGIN:VCALENDAR" not in ics_text:
+        raise ValueError(f"{path.name}: missing BEGIN:VCALENDAR")
+
+    if "END:VCALENDAR" not in ics_text:
+        raise ValueError(f"{path.name}: missing END:VCALENDAR")
+
+    # Ensure trailing newline (some clients care)
+    if not ics_text.endswith("\n"):
+        ics_text += "\n"
+
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+
+    try:
+        tmp_path.write_text(ics_text, encoding="utf-8", newline="\n")
+        tmp_path.replace(path)  # atomic on same filesystem
+    except Exception as e:
+        raise RuntimeError(f"Failed writing {path.name}") from e
+
+    print(f"✔ wrote {path}")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Generate ICS calendar files"
+    )
+    parser.add_argument(
+        "--out",
+        required=True,
+        help="Output directory for generated .ics files"
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    out_dir = Path(args.out).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     events = fetch_events()
     ics_text = generate_ics(events)
-    with open(f"{CALENDARS_FOLDER}/dnb-ams-calendar.ics", "w", encoding="utf-8") as f:
-        f.write(ics_text)
+    # Example filenames — keep these STABLE
+    write_calendar(out_dir / "ams-dnb.ics", ics_text)
+
+
+if __name__ == "__main__":
+    main()

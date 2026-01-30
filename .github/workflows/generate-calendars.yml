@@ -1,0 +1,58 @@
+name: Generate calendars
+
+on:
+  schedule:
+    # every 6 hours — adjust as needed
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate calendars
+        env:
+            NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+            NOTION_DATABASE_ID: ${{ vars.NOTION_DATABASE_ID }}
+            NOTION_DATASOURCE_ID: ${{ vars.NOTION_DATASOURCE_ID }}
+        run: |
+              rm -rf calendars/_generated
+              mkdir -p calendars/_generated
+              python src/generate_calendars.py --out calendars/_generated
+        
+      - name: Validate generated calendars
+        run: |
+          set -e
+          count=$(ls calendars/_generated/*.ics | wc -l)
+          if [ "$count" -eq 0 ]; then
+            echo "No calendars generated"
+            exit 1
+          fi
+
+          for file in calendars/_generated/*.ics; do
+            grep -q "BEGIN:VCALENDAR" "$file"
+            grep -q "END:VCALENDAR" "$file"
+          done
+
+      - name: Upload calendars artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: calendars
+          path: calendars/_generated/
