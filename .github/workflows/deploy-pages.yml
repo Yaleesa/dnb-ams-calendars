@@ -30,9 +30,10 @@ jobs:
         uses: actions/download-artifact@v4
 
         with:
-        #   name: calendars
+          name: calendars
           run-id: ${{ github.event.workflow_run.id }}
-        #   path: calendars/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: calendars/
 
       - name: Prepare site
         run: |
