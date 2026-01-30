@@ -22,8 +22,10 @@ jobs:
 
       - name: Download calendars artifact
         uses: actions/download-artifact@v4
+
         with:
           name: calendars
+          run-id: ${{ github.event.workflow_run.id }}
           path: calendars/
 
       - name: Prepare site
