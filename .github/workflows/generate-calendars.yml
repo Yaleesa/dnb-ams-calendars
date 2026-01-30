@@ -35,7 +35,7 @@ jobs:
         run: |
               rm -rf calendars/_generated
               mkdir -p calendars/_generated
-              python src/generate_calendars.py --out calendars/_generated
+              python generate_calendars.py --out calendars/_generated
         
       - name: Validate generated calendars
         run: |
